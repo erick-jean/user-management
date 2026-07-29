@@ -5,6 +5,7 @@
     "target": "ES2023",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
 
     "declaration": true,
     "removeComments": true,
