@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsBooleanString, IsOptional } from 'class-validator';
 
 export class ListUserDto {
   @ApiProperty({
@@ -36,4 +37,10 @@ export class ListUserDto {
     description: 'Data da última atualização',
   })
   updatedAt!: Date;
+}
+
+export class ListUserFilterDto {
+  @IsOptional()
+  @IsBooleanString()
+  active?: string;
 }

@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 // import { UpdateUserDto } from './dto/update-user.dto';
-import { ListUserDto } from './dto/get-user.dto';
+import { ListUserDto, ListUserFilterDto } from './dto/get-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { hash } from 'bcryptjs';
@@ -62,8 +62,12 @@ export class UsersService {
   }
 
   // Busca todos os usuários no banco de dados e retorna uma lista de objetos
-  findAll(): Promise<ListUserDto[]> {
+  findAll(filter?: ListUserFilterDto): Promise<ListUserDto[]> {
     return this.prisma.user.findMany({
+      where: {
+        active:
+          filter?.active !== undefined ? filter.active === 'true' : undefined,
+      },
       select: {
         id: true,
         name: true,

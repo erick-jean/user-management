@@ -1,10 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ListUserDto } from './dto/get-user.dto';
+import { ListUserDto, ListUserFilterDto } from './dto/get-user.dto';
 import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -25,8 +34,14 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'Lista todos os usuários' })
   @ApiOkResponse({ type: ListUserDto, isArray: true })
-  findAll(): Promise<ListUserDto[]> {
-    return this.usersService.findAll();
+  @ApiQuery({
+    name: 'active',
+    required: false,
+    enum: ['true', 'false'],
+    description: 'Filtra usuários pelo status ativo',
+  })
+  findAll(@Query() filter: ListUserFilterDto): Promise<ListUserDto[]> {
+    return this.usersService.findAll(filter);
   }
 
   @Get(':id')
