@@ -10,6 +10,7 @@ import { ListUserDto } from './dto/get-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { hash } from 'bcryptjs';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -96,9 +97,48 @@ export class UsersService {
     return user;
   }
 
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
+  // Atualiza um usuário existente no banco de dados com base no ID fornecido e nos dados do DTO
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<ListUserDto> {
+    // Valida se o ID do usuário foi fornecido
+    if (!id) {
+      throw new BadRequestException('O ID do usuário é obrigatório.');
+    }
+
+    // Verifica se o usuário existe no banco de dados
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
+    }
+
+    try {
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data: {
+          name: updateUserDto.name,
+          email: updateUserDto.email,
+          active: updateUserDto.active,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          active: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+      return updatedUser;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Ocorreu um erro ao atualizar o usuário.' + error,
+      );
+    }
+  }
 
   // remove(id: number) {
   //   return `This action removes a #${id} user`;
