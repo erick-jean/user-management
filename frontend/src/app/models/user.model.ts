@@ -2,7 +2,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  active: boolean;
+  status: 'ativo' | 'inativo';
   createdAt?: string;
   updatedAt?: string;
 }
@@ -16,5 +16,5 @@ export interface CreateUser {
 export interface UpdateUser {
   name?: string;
   email?: string;
-  active?: boolean;
+  status?: 'ativo' | 'inativo';
 }

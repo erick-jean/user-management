@@ -2,15 +2,17 @@
   background: #f4f6f8;
   display: block;
   min-height: 100%;
+  width: 100%;
 }
 
 .page {
   box-sizing: border-box;
   display: grid;
-  gap: 20px;
+  gap: 24px;
   margin: 0 auto;
-  max-width: 1120px;
-  padding: 32px 24px;
+  max-width: 1180px;
+  padding: 36px 24px;
+  width: 100%;
 }
 
 .page-hero {
@@ -18,11 +20,11 @@
   background: #ffffff;
   border: 1px solid #d9e0e7;
   border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
   display: flex;
   gap: 16px;
   justify-content: space-between;
-  padding: 22px 24px;
+  padding: 26px 28px;
 }
 
 .eyebrow {
@@ -54,13 +56,14 @@ h1 {
 
 .create-button {
   flex: 0 0 auto;
+  min-width: 140px;
 }
 
 .content-panel {
   background: #ffffff;
   border: 1px solid #d9e0e7;
   border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
   overflow: hidden;
 }
 
@@ -68,8 +71,9 @@ h1 {
   align-items: center;
   border-bottom: 1px solid #e5eaf0;
   display: flex;
+  gap: 16px;
   justify-content: space-between;
-  padding: 18px 24px;
+  padding: 20px 28px;
 }
 
 .panel-header h2 {
@@ -84,12 +88,21 @@ h1 {
   margin-top: 4px;
 }
 
+.status-filter {
+  flex: 0 0 auto;
+
+  .mat-button-toggle {
+    min-width: 86px;
+  }
+}
+
 .table-wrapper {
   overflow-x: auto;
 }
 
 table {
   background: #ffffff;
+  min-width: 820px;
   width: 100%;
 }
 
@@ -119,6 +132,18 @@ th.cdk-drag {
 .name-cell {
   color: #172033;
   font-weight: 600;
+}
+
+.mat-column-id {
+  width: 86px;
+}
+
+.mat-column-status {
+  width: 140px;
+}
+
+.mat-column-actions {
+  width: 130px;
 }
 
 .actions-cell {
@@ -156,7 +181,7 @@ th.cdk-drag {
   min-width: 86px;
 }
 
-.status-button--inactive {
+.status-button--inativo {
   --mat-text-button-label-text-color: #c62828;
   --mat-text-button-state-layer-color: #c62828;
   background: #fff1f1;
@@ -166,12 +191,14 @@ th.cdk-drag {
 
 @media (max-width: 640px) {
   .page {
-    padding: 20px 12px;
+    gap: 16px;
+    padding: 16px 12px;
   }
 
   .page-hero {
     align-items: stretch;
     flex-direction: column;
+    padding: 20px;
   }
 
   .create-button {
@@ -179,7 +206,15 @@ th.cdk-drag {
   }
 
   .panel-header {
+    align-items: stretch;
+    flex-direction: column;
     padding: 16px;
+  }
+
+  .status-filter {
+    display: flex;
+    overflow-x: auto;
+    width: 100%;
   }
 
   td.mat-mdc-cell,

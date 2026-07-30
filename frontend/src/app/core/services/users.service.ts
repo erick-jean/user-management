@@ -11,11 +11,11 @@ export class UsersService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/users`;
 
-  findAll(active?: boolean): Observable<User[]> {
+  findAll(status?: 'ativo' | 'inativo'): Observable<User[]> {
     let params = new HttpParams();
 
-    if (active !== undefined) {
-      params = params.set('active', String(active));
+    if (status !== undefined) {
+      params = params.set('status', status);
     }
 
     return this.http.get<User[]>(this.apiUrl, { params });
@@ -33,7 +33,9 @@ export class UsersService {
     return this.http.patch<User>(`${this.apiUrl}/${id}`, user);
   }
 
-  inactivate(id: number, active: boolean): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${id}`, { active });
+  updateStatus(id: number, status: 'ativo' | 'inativo'): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${id}`, {
+      status,
+    });
   }
 }
