@@ -5,12 +5,70 @@ services:
     restart: unless-stopped
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_PID: "Developer"
-      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Troque_Essa_Senha_Forte_123!}"
     ports:
-      - "1433:1433"
+      - "${DB_PORT:-1433}:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "timeout 1 bash -c '</dev/tcp/127.0.0.1/1433' || exit 1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  db-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Troque_Essa_Senha_Forte_123!}"
+      DB_DATABASE: ${DB_DATABASE:-user_management}
+    command:
+      - /bin/bash
+      - -c
+      - |
+        for i in {1..30}; do
+          /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "$$MSSQL_SA_PASSWORD" -Q "IF DB_ID(N'$$DB_DATABASE') IS NULL CREATE DATABASE [$$DB_DATABASE];" && exit 0
+          echo "Aguardando SQL Server aceitar login... tentativa $$i/30"
+          sleep 2
+        done
+        exit 1
+    restart: "no"
+
+  backend:
+    build:
+      context: ./backend
+    container_name: user-management-api
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      PORT: 3000
+      FRONTEND_URL: http://localhost:${FRONTEND_PORT:-4200}
+      DB_HOST: sqlserver
+      DB_PORT: 1433
+      DB_DATABASE: ${DB_DATABASE:-user_management}
+      DB_USERNAME: sa
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-Troque_Essa_Senha_Forte_123!}"
+      DATABASE_URL: "sqlserver://sqlserver:1433;database=${DB_DATABASE:-user_management};user=sa;password=${MSSQL_SA_PASSWORD:-Troque_Essa_Senha_Forte_123!};encrypt=true;trustServerCertificate=true"
+    ports:
+      - "${API_PORT:-3000}:3000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: user-management-web
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-4200}:80"
 
 volumes:
   sqlserver_data:
