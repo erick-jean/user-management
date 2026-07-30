@@ -1,0 +1,8 @@
+mat-dialog-content {
+  min-width: min(360px, 80vw);
+}
+
+.confirm-button {
+  background-color: var(--mat-sys-error);
+  color: var(--mat-sys-on-error);
+}

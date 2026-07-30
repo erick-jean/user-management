@@ -1,1 +1,51 @@
-<p>user-dialog works!</p>
+<h2 mat-dialog-title>{{ isEditMode ? 'Editar usuario' : 'Criar usuario' }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="save()">
+  <mat-dialog-content class="dialog-content">
+    <mat-form-field appearance="outline">
+      <mat-label>Nome</mat-label>
+      <input matInput formControlName="name" autocomplete="name" />
+
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Informe o nome.</mat-error>
+      }
+
+      @if (form.controls.name.hasError('minlength')) {
+        <mat-error>O nome deve ter pelo menos 2 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>E-mail</mat-label>
+      <input matInput type="email" formControlName="email" autocomplete="email" />
+
+      @if (form.controls.email.hasError('required')) {
+        <mat-error>Informe o e-mail.</mat-error>
+      }
+
+      @if (form.controls.email.hasError('email')) {
+        <mat-error>Informe um e-mail valido.</mat-error>
+      }
+    </mat-form-field>
+
+    @if (!isEditMode) {
+      <mat-form-field appearance="outline">
+        <mat-label>Senha</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="new-password" />
+
+        @if (form.controls.password.hasError('required')) {
+          <mat-error>Informe a senha.</mat-error>
+        }
+
+        @if (form.controls.password.hasError('minlength')) {
+          <mat-error>A senha deve ter no minimo 8 caracteres.</mat-error>
+        }
+      </mat-form-field>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>Cancelar</button>
+    <button mat-flat-button type="submit">{{ isEditMode ? 'Salvar' : 'Criar' }}</button>
+  </mat-dialog-actions>
+</form>

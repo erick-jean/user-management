@@ -1,15 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { UserDialog } from './user-dialog';
+import { ConfirmDialog } from './confirm-dialog';
 
-describe('UserDialog', () => {
-  let component: UserDialog;
-  let fixture: ComponentFixture<UserDialog>;
+describe('ConfirmDialog', () => {
+  let component: ConfirmDialog;
+  let fixture: ComponentFixture<ConfirmDialog>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UserDialog],
+      imports: [ConfirmDialog],
       providers: [
         {
           provide: MatDialogRef,
@@ -20,13 +20,14 @@ describe('UserDialog', () => {
         {
           provide: MAT_DIALOG_DATA,
           useValue: {
-            mode: 'create',
+            title: 'Desativar usuario',
+            message: 'Tem certeza?',
           },
         },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(UserDialog);
+    fixture = TestBed.createComponent(ConfirmDialog);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

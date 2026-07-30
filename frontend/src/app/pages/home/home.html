@@ -1,53 +1,101 @@
-<h1>Usuários</h1>
+<main class="page">
+  <section class="page-hero">
+    <div>
+      <p class="eyebrow">Administracao</p>
+      <h1>Usuarios</h1>
+      <p class="page-description">Gerencie acessos, dados cadastrais e status dos usuarios.</p>
+    </div>
 
-@if (loading()) {
-  <p>Carregando usuários...</p>
-}
+    <button mat-flat-button type="button" class="create-button" (click)="openCreateDialog()">
+      Criar usuario
+    </button>
+  </section>
 
-@if (errorMessage()) {
-  <div class="error-message">
-    <p>{{ errorMessage() }}</p>
+  <section class="content-panel">
+    <header class="panel-header">
+      <div>
+        <h2>Lista de usuários</h2>
+        <p>{{ dataSource().length }} usuário(s) cadastrado(s)</p>
+      </div>
+    </header>
 
-    <button type="button" (click)="loadUsers()">Tentar novamente</button>
-  </div>
-}
-
-@if (!loading() && !errorMessage()) {
-  <table
-    mat-table
-    [dataSource]="dataSource()"
-    cdkDropList
-    cdkDropListOrientation="horizontal"
-    (cdkDropListDropped)="drop($event)"
-  >
-    <ng-container matColumnDef="id">
-      <th mat-header-cell cdkDrag *matHeaderCellDef>id</th>
-      <td mat-cell *matCellDef="let element">{{ element.id }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="name">
-      <th mat-header-cell cdkDrag *matHeaderCellDef>Nome</th>
-      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="email">
-      <th mat-header-cell cdkDrag *matHeaderCellDef>E-mail</th>
-      <td mat-cell *matCellDef="let element">{{ element.email }}</td>
-    </ng-container>
-
-    <ng-container matColumnDef="active">
-      <th mat-header-cell cdkDrag *matHeaderCellDef>Status</th>
-
-      <td mat-cell *matCellDef="let element">
-        {{ element.active ? 'Ativo' : 'Inativo' }}
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="columns"></tr>
-    <tr mat-row *matRowDef="let row; columns: columns"></tr>
-
-    @if (dataSource.length === 0) {
-      <p>Nenhum usuário cadastrado.</p>
+    @if (loading()) {
+      <div class="state-message">
+        <p>Carregando usuários...</p>
+      </div>
     }
-  </table>
-}
+
+    @if (errorMessage()) {
+      <div class="state-message state-message--error">
+        <p>{{ errorMessage() }}</p>
+
+        <button mat-stroked-button type="button" (click)="loadUsers()">Tentar novamente</button>
+      </div>
+    }
+
+    @if (actionErrorMessage()) {
+      <p class="inline-error">{{ actionErrorMessage() }}</p>
+    }
+
+    @if (!loading() && !errorMessage()) {
+      @if (dataSource().length === 0) {
+        <div class="state-message">
+          <p>Nenhum usuario cadastrado.</p>
+        </div>
+      } @else {
+        <div class="table-wrapper">
+          <table
+            mat-table
+            [dataSource]="dataSource()"
+            cdkDropList
+            cdkDropListOrientation="horizontal"
+            (cdkDropListDropped)="drop($event)"
+          >
+            <ng-container matColumnDef="id">
+              <th mat-header-cell cdkDrag *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let element">#{{ element.id }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell cdkDrag *matHeaderCellDef>Nome</th>
+              <td mat-cell *matCellDef="let element" class="name-cell">{{ element.name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+              <th mat-header-cell cdkDrag *matHeaderCellDef>E-mail</th>
+              <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="active">
+              <th mat-header-cell cdkDrag *matHeaderCellDef>Status</th>
+
+              <td mat-cell *matCellDef="let element">
+                <button
+                  mat-button
+                  type="button"
+                  class="status-button"
+                  [class.status-button--inactive]="!element.active"
+                  [disabled]="updatingUserId() === element.id"
+                  (click)="toggleActive(element)"
+                >
+                  {{ element.active ? 'Ativo' : 'Inativo' }}
+                </button>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell cdkDrag *matHeaderCellDef>Ações</th>
+
+              <td mat-cell *matCellDef="let element" class="actions-cell">
+                <button mat-stroked-button type="button" (click)="openEditDialog(element)">Editar</button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columns"></tr>
+            <tr mat-row *matRowDef="let row; columns: columns"></tr>
+          </table>
+        </div>
+      }
+    }
+  </section>
+</main>
