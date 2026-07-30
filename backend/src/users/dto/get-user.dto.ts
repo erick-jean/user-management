@@ -1,46 +1,53 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsBooleanString, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsIn, IsOptional } from 'class-validator';
+
+export type UserStatus = 'ativo' | 'inativo';
 
 export class ListUserDto {
   @ApiProperty({
     example: 1,
-    description: 'Identificador do usuário',
+    description: 'Identificador do usuario',
   })
   id!: number;
 
   @ApiProperty({
     example: 'Ana Souza',
-    description: 'Nome completo do usuário',
+    description: 'Nome completo do usuario',
   })
   name!: string;
 
   @ApiProperty({
     example: 'ana.souza@example.com',
-    description: 'E-mail do usuário',
+    description: 'E-mail do usuario',
   })
   email!: string;
 
   @ApiProperty({
-    example: true,
-    description: 'Indica se o usuário está ativo',
+    example: 'ativo',
+    enum: ['ativo', 'inativo'],
+    description: 'Status do usuario',
   })
-  active!: boolean;
+  status!: UserStatus;
 
   @ApiProperty({
     example: '2026-07-28T14:30:00.000Z',
-    description: 'Data de criação',
+    description: 'Data de criacao',
   })
   createdAt!: Date;
 
   @ApiProperty({
     example: '2026-07-28T14:30:00.000Z',
-    description: 'Data da última atualização',
+    description: 'Data da ultima atualizacao',
   })
   updatedAt!: Date;
 }
 
 export class ListUserFilterDto {
+  @ApiPropertyOptional({
+    enum: ['ativo', 'inativo'],
+    description: 'Filtra usuarios por status',
+  })
   @IsOptional()
-  @IsBooleanString()
-  active?: string;
+  @IsIn(['ativo', 'inativo'])
+  status?: UserStatus;
 }

@@ -5,24 +5,30 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-// import { UpdateUserDto } from './dto/update-user.dto';
-import { ListUserDto, ListUserFilterDto } from './dto/get-user.dto';
+import { hash } from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { hash } from 'bcryptjs';
+import { ListUserDto, ListUserFilterDto } from './dto/get-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+
+type UserRecord = {
+  id: number;
+  name: string;
+  email: string;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Cria um novo usuário no banco de dados
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<ListUserDto> {
     const email = createUserDto.email?.trim().toLowerCase();
 
-    // Valida se o e-mail foi fornecido
     if (!email) {
-      throw new BadRequestException('O e-mail é obrigatório.');
+      throw new BadRequestException('O e-mail e obrigatorio.');
     }
 
     const userExists = await this.prisma.user.findUnique({
@@ -30,117 +36,148 @@ export class UsersService {
       select: { id: true },
     });
 
-    // Se o usuário já existe, lança uma exceção de conflito
     if (userExists) {
-      throw new ConflictException('Este e-mail já está em uso.');
+      throw new ConflictException('Este e-mail ja esta em uso.');
     }
 
     try {
       const passwordHash = await hash(createUserDto.password, 10);
-
-      return await this.prisma.user.create({
+      const user = await this.prisma.user.create({
         data: {
-          name: createUserDto.name,
+          name: createUserDto.name.trim(),
           email,
           passwordHash,
-          active: true,
+          active: createUserDto.status !== 'inativo',
         },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          active: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        select: this.userSelect(),
       });
+
+      return this.toListUserDto(user);
     } catch {
       throw new InternalServerErrorException(
-        'Ocorreu um erro ao criar o usuário.',
+        'Ocorreu um erro ao criar o usuario.',
       );
     }
   }
 
-  // Busca todos os usuários no banco de dados e retorna uma lista de objetos
-  findAll(filter?: ListUserFilterDto): Promise<ListUserDto[]> {
-    return this.prisma.user.findMany({
+  async findAll(filter?: ListUserFilterDto): Promise<ListUserDto[]> {
+    const users = await this.prisma.user.findMany({
       where: {
-        active:
-          filter?.active !== undefined ? filter.active === 'true' : undefined,
+        active: this.resolveActiveFilter(filter),
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        active: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: this.userSelect(),
       orderBy: {
         id: 'asc',
       },
     });
+
+    return users.map((user) => this.toListUserDto(user));
   }
 
-  // Busca um usuário pelo ID no banco de dados e retorna o objeto correspondente
   async findOne(id: number): Promise<ListUserDto> {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        active: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: this.userSelect(),
     });
+
     if (!user) {
-      throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
+      throw new NotFoundException(`Usuario com ID ${id} nao encontrado`);
     }
-    return user;
+
+    return this.toListUserDto(user);
   }
 
-  // Atualiza um usuário existente no banco de dados com base no ID fornecido e nos dados do DTO
   async update(id: number, updateUserDto: UpdateUserDto): Promise<ListUserDto> {
-    // Valida se o ID do usuário foi fornecido
     if (!id) {
-      throw new BadRequestException('O ID do usuário é obrigatório.');
+      throw new BadRequestException('O ID do usuario e obrigatorio.');
     }
 
-    // Verifica se o usuário existe no banco de dados
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-      },
+      select: { id: true },
     });
+
     if (!user) {
-      throw new NotFoundException(`Usuário com ID ${id} não encontrado`);
+      throw new NotFoundException(`Usuario com ID ${id} nao encontrado`);
+    }
+
+    const email = updateUserDto.email?.trim().toLowerCase();
+
+    if (email) {
+      const userWithEmail = await this.prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+
+      if (userWithEmail && userWithEmail.id !== id) {
+        throw new ConflictException('Este e-mail ja esta em uso.');
+      }
     }
 
     try {
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data: {
-          name: updateUserDto.name,
-          email: updateUserDto.email,
-          active: updateUserDto.active,
+          name: updateUserDto.name?.trim(),
+          email,
+          active: this.resolveUpdatedActive(updateUserDto),
         },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          active: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        select: this.userSelect(),
       });
-      return updatedUser;
-    } catch (error) {
+
+      return this.toListUserDto(updatedUser);
+    } catch {
       throw new InternalServerErrorException(
-        'Ocorreu um erro ao atualizar o usuário.' + error,
+        'Ocorreu um erro ao atualizar o usuario.',
       );
     }
+  }
+
+  private resolveActiveFilter(filter?: ListUserFilterDto): boolean | undefined {
+    if (filter?.status === 'ativo') {
+      return true;
+    }
+
+    if (filter?.status === 'inativo') {
+      return false;
+    }
+
+    return undefined;
+  }
+
+  private resolveUpdatedActive(
+    updateUserDto: UpdateUserDto,
+  ): boolean | undefined {
+    if (updateUserDto.status === 'ativo') {
+      return true;
+    }
+
+    if (updateUserDto.status === 'inativo') {
+      return false;
+    }
+
+    return undefined;
+  }
+
+  private toListUserDto(user: UserRecord): ListUserDto {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      status: user.active ? 'ativo' : 'inativo',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  private userSelect() {
+    return {
+      id: true,
+      name: true,
+      email: true,
+      active: true,
+      createdAt: true,
+      updatedAt: true,
+    } as const;
   }
 }

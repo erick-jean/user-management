@@ -1,14 +1,15 @@
 import { ApiPropertyOptional, OmitType, PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsIn, IsOptional } from 'class-validator';
 import { CreateUserDto } from './create-user.dto';
+import type { UserStatus } from './get-user.dto';
 
 export class UpdateUserDto extends PartialType(
-  OmitType(CreateUserDto, ['password'] as const),
+  OmitType(CreateUserDto, ['password', 'status'] as const),
 ) {
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ example: 'inativo', enum: ['ativo', 'inativo'] })
   @IsOptional()
-  @IsBoolean({
-    message: 'O campo active deve ser um valor booleano',
+  @IsIn(['ativo', 'inativo'], {
+    message: 'O status deve ser ativo ou inativo',
   })
-  active?: boolean;
+  status?: UserStatus;
 }
